@@ -1,8 +1,12 @@
 const { write } = require('fs');
 const http = require('http')
+const https = require('https')
 const url = require('url')
 const fs = require('fs')
 const crypto = require('crypto');
+const jsforce = require('jsforce');
+const path = require('path');
+
 const GENUS_COOKIE_NAME = 'genusCookie';
 const port = 3000
 
@@ -45,9 +49,28 @@ function cookieManagement(req, res){
     }
 }
 
-function handleTrackingParameters(req){
+async function handleTrackingParameters(req){
     let search_params = url.parse(req.url,true).query;
-    console.log(search_params);
+    let metadata = search_params['metadata'];
+
+    let options = {
+      host: 'genusone-developer-edition.eu40.force.com',
+      path: '/services/apexrest/service?metadata=' + metadata,
+      method: 'POST',
+      port: 443,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+    
+    const sfReq = https.request(options, res => {
+        console.log(`statusCode: ${res.statusCode}`);
+      })
+      
+    sfReq.on('error', error => {
+    console.error(error)
+    })
+    sfReq.end();
 }
 
 const server = http.createServer(function(req,res) {
