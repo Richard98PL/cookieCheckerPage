@@ -1,11 +1,7 @@
-const { write } = require('fs');
 const http = require('http')
 const https = require('https')
 const url = require('url')
-const fs = require('fs')
 const crypto = require('crypto');
-const jsforce = require('jsforce');
-const path = require('path');
 
 const GENUS_COOKIE_NAME = 'genusCookie';
 const port = 3000
