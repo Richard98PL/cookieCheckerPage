@@ -3,7 +3,21 @@ const https = require('https')
 const url = require('url')
 const crypto = require('crypto');
 
+const USER_AGENT = 'user-agent';
+const ALGORYTHM = 'md5';
 const GENUS_COOKIE_NAME = 'genusCookie';
+const HEX = 'hex';
+const METADATA = 'metadata';
+const HOST = 'genusone-developer-edition.eu40.force.com'
+const ENDPOINT = '/services/apexrest/service'
+const HTTP_METHOD = 'POST'
+const IMAGE_METHOD = 'GET'
+const ENDPOINT_PORT = 443
+const CONTENT_TYPE = 'Content-Type'
+const APPLICATION_JSON = 'application/json'
+const METADATA_URL_PARAMETER = 'metadata'
+const HASH_URL_PARAMETER = 'hash'
+
 const port = 3000
 
 function parseCookies (request) {
@@ -25,10 +39,10 @@ function cookieManagement(req, res){
     let hash = '';
 
     if(isExistingCookieEmpty){
-        let userAgent = req.headers['user-agent'];
+        let userAgent = req.headers[USER_AGENT];
         let date = new Date();
         let key = userAgent.toString() + date.toString();
-        hash = crypto.createHash('md5').update(key).digest('hex');
+        hash = crypto.createHash(ALGORYTHM).update(key).digest(HEX);
         //In your case, since MD5 is a 128-bit hash, 
         //the probability of a collision is less than 2 ^(-100). 
         //You'd need about 2 64 records before the probability of a collision rose to 50%
@@ -50,15 +64,15 @@ function cookieManagement(req, res){
 
 async function handleTrackingParameters(req, cookie){
     let search_params = url.parse(req.url,true).query;
-    let metadata = search_params['metadata'];
+    let metadata = search_params[METADATA];
 
     let options = {
-      host: 'genusone-developer-edition.eu40.force.com',
-      path: '/services/apexrest/service?hash=' + cookie + '&metadata=' + metadata,
-      method: 'POST',
-      port: 443,
+      host: HOST,
+      path: ENDPOINT + '?' + HASH_URL_PARAMETER + '=' + cookie + '&' + METADATA_URL_PARAMETER + '=' + metadata,
+      method: HTTP_METHOD,
+      port: ENDPOINT_PORT,
       headers: {
-        'Content-Type': 'application/json'
+        CONTENT_TYPE : APPLICATION_JSON
       }
     };
     
@@ -74,8 +88,8 @@ async function handleTrackingParameters(req, cookie){
 
 const server = http.createServer(function(req,res) {
     switch (req.method){
-        case 'GET':
-            console.log('GET');
+        case IMAGE_METHOD:
+            console.log(IMAGE_METHOD);
             let cookie = cookieManagement(req, res);
             handleTrackingParameters(req, cookie);
             break;
