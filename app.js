@@ -21,12 +21,14 @@ function parseCookies (request) {
 function cookieManagement(req, res){
     let cookies = parseCookies(req);
     let existing_genus_cookie = cookies[GENUS_COOKIE_NAME];
+    let isExistingCookieEmpty = existing_genus_cookie == null || existing_genus_cookie == '';
+    let hash = '';
 
-    if(existing_genus_cookie == null || existing_genus_cookie == ''){
+    if(isExistingCookieEmpty){
         let userAgent = req.headers['user-agent'];
         let date = new Date();
         let key = userAgent.toString() + date.toString();
-        let hash = crypto.createHash('md5').update(key).digest('hex');
+        hash = crypto.createHash('md5').update(key).digest('hex');
         //In your case, since MD5 is a 128-bit hash, 
         //the probability of a collision is less than 2 ^(-100). 
         //You'd need about 2 64 records before the probability of a collision rose to 50%
@@ -43,15 +45,16 @@ function cookieManagement(req, res){
             'Cache-Control' : 'private',
         });
     }
+    return isExistingCookieEmpty ? hash : existing_genus_cookie;
 }
 
-async function handleTrackingParameters(req){
+async function handleTrackingParameters(req, cookie){
     let search_params = url.parse(req.url,true).query;
     let metadata = search_params['metadata'];
 
     let options = {
       host: 'genusone-developer-edition.eu40.force.com',
-      path: '/services/apexrest/service?metadata=' + metadata,
+      path: '/services/apexrest/service?hash=' + cookie + '&metadata=' + metadata,
       method: 'POST',
       port: 443,
       headers: {
@@ -73,8 +76,8 @@ const server = http.createServer(function(req,res) {
     switch (req.method){
         case 'GET':
             console.log('GET');
-            cookieManagement(req, res);
-            handleTrackingParameters(req);
+            let cookie = cookieManagement(req, res);
+            handleTrackingParameters(req, cookie);
             break;
     }
     res.end();
