@@ -43,11 +43,11 @@ function cookieManagement(req, res){
             'Cache-Control' : 'private',
         });
     }
-    console.log(res);
 }
 
 function handleTrackingParameters(req){
-    
+    let search_params = url.parse(req.url,true).query;
+    console.log(search_params);
 }
 
 const server = http.createServer(function(req,res) {
